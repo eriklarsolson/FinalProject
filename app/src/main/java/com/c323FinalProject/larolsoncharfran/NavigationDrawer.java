@@ -2,21 +2,13 @@ package com.c323FinalProject.larolsoncharfran;
 
 import android.os.Bundle;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-
 import android.view.MenuItem;
-import android.view.View;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.core.view.GravityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.navigation.NavigationView;
 
@@ -25,11 +17,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.view.Menu;
-
 public class NavigationDrawer extends AppCompatActivity {
-
-    private AppBarConfiguration mAppBarConfiguration;
     DrawerLayout drawer;
 
     @Override
@@ -53,6 +41,11 @@ public class NavigationDrawer extends AppCompatActivity {
         );
 
         drawer.addDrawerListener(mDrawerToggle);
+
+        //Open home fragment on app load
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.frame, new HomeFragment());
+        transaction.commit();
     }
 
     private void configureNavigationDrawer() {
@@ -65,9 +58,9 @@ public class NavigationDrawer extends AppCompatActivity {
                 if (itemId == R.id.nav_home) {
                     f = new HomeFragment();
                 } else if (itemId == R.id.nav_map) {
-                    f = new MapViewFragment();
+                    f = new MapFragment();
                 }else if (itemId == R.id.nav_calender) {
-                    f = new CalenderViewFragment();
+                    f = new CalendarFragment();
                 }
 
                 if (f != null) {
