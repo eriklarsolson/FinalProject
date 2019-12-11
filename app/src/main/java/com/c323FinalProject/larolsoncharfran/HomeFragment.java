@@ -1,22 +1,47 @@
 package com.c323FinalProject.larolsoncharfran;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.ContentValues;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
+import com.google.android.gms.common.api.Status;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.UUID;
+
+import static com.c323FinalProject.larolsoncharfran.NavigationDrawer.myDB;
+import static com.c323FinalProject.larolsoncharfran.NavigationDrawer.newTaskIcon;
+import static com.c323FinalProject.larolsoncharfran.NavigationDrawer.taskTableName;
+import static com.c323FinalProject.larolsoncharfran.NavigationDrawer.userTableName;
 
 public class HomeFragment extends Fragment {
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener;
@@ -27,12 +52,21 @@ public class HomeFragment extends Fragment {
     ArrayList<Task> pendingTasks = new ArrayList<>();
     ArrayList<Task> completedTasks = new ArrayList<>();
 
+    boolean completePageActive = false;
+    AlertDialog dialog;
+    static Place selectedAddress = null;
+
+    ItemTouchHelper itemTouchHelper;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
 
         BottomNavigationView bottomNavigation = root.findViewById(R.id.nav_view);
         bottomNavigation.inflateMenu(R.menu.home);
+
+        //Set title
+        getActivity().setTitle("Home");
 
         //Set up bottom nav
         setUpBottomNav(bottomNavigation);
@@ -65,26 +99,231 @@ public class HomeFragment extends Fragment {
                 if (swipeDir == ItemTouchHelper.RIGHT) {
                     final int position = viewHolder.getAdapterPosition();
                     //taskAdapter.removeItem(position);
-                    //TODO - Don't delete but instead move to complete task list
+
+                    //Add to complete list
+                    completedTasks.add(pendingTasks.get(position));
+
+                    //Delete from pending
+                    pendingTasks.remove(position);
+
+                    //Notify adapter of data change
+                    taskAdapter.notifyDataSetChanged();
+
+                    //TODO - update db with new status of this task
+                    ContentValues values = new ContentValues();
+                    /*values.put("Task_id", newTask.getId());
+                    values.put("Task_title", newTask.getTitle());
+                    values.put("Task_description", newTask.getDescription());
+                    values.put("Task_duedate", newTask.getDueDateString());
+                    values.put("Task_duetime", newTask.getDueTimeString());
+                    values.put("Task_image", getBitmapAsByteArray(newTask.getImage()));
+                    values.put("Task_latitude", newTask.getLocation().latitude);
+                    values.put("Task_longitude", newTask.getLocation().longitude);
+                    values.put("User_id", newTask.getUserID());*/
+
+                    //myDB.insert(taskTableName, null, values);
                 }
             }
         };
 
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
+        itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
         itemTouchHelper.attachToRecyclerView(taskView);
-
-        //TODO - Set for long press hold of a task
 
         addTaskButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //TODO - Popup add task here
-
+                showCameraOptionDialog();
             }
         });
 
         return root;
     }
+
+    public void showCameraOptionDialog() {
+        // create an alert builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        // set the custom layout
+        final View customLayout = getLayoutInflater().inflate(R.layout.option_dialog, null);
+        builder.setView(customLayout);
+
+        Button galleryButton = customLayout.findViewById(R.id.galleryButton);
+        Button cameraButton = customLayout.findViewById(R.id.cameraButton);
+        Button cancelButton = customLayout.findViewById(R.id.cancelButton);
+
+        //Create and show the alert dialog
+        dialog = builder.create();
+        dialog.show();
+
+        galleryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Load from gallery
+                Intent intent = new Intent();
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 100);
+
+                dialog.hide();
+                showNewTaskDialog();
+            }
+        });
+
+        cameraButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Load camera intent
+                Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(cameraIntent, 200);
+
+                dialog.hide();
+                showNewTaskDialog();
+            }
+        });
+
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.hide();
+            }
+        });
+    }
+
+    public void showNewTaskDialog() {
+        // create an alert builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
+        // set the custom layout
+        final View customLayout = getLayoutInflater().inflate(R.layout.add_task_dialog, null);
+
+        //Set up address bar
+        setUpAddressBar();
+
+        builder.setView(customLayout);
+
+        Button saveButton = customLayout.findViewById(R.id.saveButton);
+        Button cancelButton = customLayout.findViewById(R.id.cancelButton);
+
+        // create and show the alert dialog
+        dialog = builder.create();
+        dialog.show();
+
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EditText title = customLayout.findViewById(R.id.title);
+                EditText description = customLayout.findViewById(R.id.description);
+                EditText dueDate = customLayout.findViewById(R.id.dueDate);
+                EditText dueTime = customLayout.findViewById(R.id.dueTime);
+
+                //TODO - Check input validation
+                String titleText = title.getText().toString();
+                String descriptionText = description.getText().toString();
+
+                //Get date object from entered input
+                String dueDateText = dueDate.getText().toString();
+                String dueTimeText = dueTime.getText().toString();
+
+                if (dueDateText.matches("([0-9]{2})/([0-9]{2})/([0-9]{4})")) {
+                    if (dueTimeText.matches("([0-9]{2}):([0-9]{2})")) {
+                        String dateInString = dueDateText + " " + dueTimeText;
+                        Date date = null;
+
+                        try {
+                            date = new SimpleDateFormat("MM/dd/yyyy hh:mm").parse(dateInString);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+
+                        //Generate unique ID
+                        String uniqueID = UUID.randomUUID().toString();
+
+                        //Create new task and add it to global list
+                        Task newTask = new Task(uniqueID, titleText, descriptionText, date, selectedAddress.getAddress(),
+                                selectedAddress.getLatLng(), newTaskIcon, LoginActivity.currentUser.getId());
+                        newTask.setDueDateString(dueDateText);
+                        newTask.setDueTimeString(dueTimeText);
+                        LoginActivity.tasks.add(newTask);
+
+                        //Reload task list
+                        getPendingAndCompleteTasks();
+
+                        if (!completePageActive) {
+                            taskAdapter = new TaskAdapter(getActivity(), pendingTasks);
+                            taskView.setAdapter(taskAdapter);
+                        } else {
+                            taskAdapter = new TaskAdapter(getActivity(), completedTasks);
+                            taskView.setAdapter(taskAdapter);
+                        }
+
+                        //Insert into DB
+                        //+ " (Task_id TEXT, Task_title TEXT, Task_description TEXT, Task_duedate TEXT, Task_duetime TEXT, " +
+                        //                "Task_image BLOB, Task_latitude TEXT, Task_longitude TEXT, User_id TEXT, Task_isComplete INT, Task_addressName TEXT);");
+                        ContentValues values = new ContentValues();
+                        values.put("Task_id", newTask.getId());
+                        values.put("Task_title", newTask.getTitle());
+                        values.put("Task_description", newTask.getDescription());
+                        values.put("Task_duedate", newTask.getDueDateString());
+                        values.put("Task_duetime", newTask.getDueTimeString());
+                        values.put("Task_image", getBitmapAsByteArray(newTask.getImage()));
+                        values.put("Task_latitude", newTask.getLocation().latitude);
+                        values.put("Task_longitude", newTask.getLocation().longitude);
+                        values.put("User_id", newTask.getUserID());
+                        if(newTask.isComplete()) {
+                            values.put("Task_isComplete", 1);
+                        } else {
+                            values.put("Task_isComplete", 0);
+                        }
+                        values.put("Task_addressName", newTask.getAddressName());
+
+                        myDB.insert(taskTableName, null, values);
+
+                        dialog.hide();
+                    } else {
+                        Toast.makeText(getContext(), "Please enter only numbers & ':' in the due date time box", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(getContext(), "Please enter only numbers & '/' in the due date date box", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.hide();
+            }
+        });
+    }
+
+    void setUpAddressBar() {
+        // Initialize Places.
+        Places.initialize(getActivity().getApplicationContext(), "AIzaSyDdB1lTLSpRzNe3zyQg45m-saH4MTK4Yno");
+
+        // Create a new Places client instance.
+        PlacesClient placesClient = Places.createClient(getActivity());
+
+        // Initialize the AutocompleteSupportFragment.
+        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
+                getChildFragmentManager().findFragmentById(R.id.addressBar);
+
+        // Specify the types of place data to return.
+        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
+
+        // Set up a PlaceSelectionListener to handle the response.
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // Add a marker in Sydney and move the camera
+                selectedAddress = place;
+            }
+
+            @Override
+            public void onError(Status status) {
+                //Handle the error.
+            }
+        });
+    }
+
 
     void setUpBottomNav(BottomNavigationView navView) {
         navView.setSelectedItemId(R.id.nav_pending);
@@ -94,16 +333,20 @@ public class HomeFragment extends Fragment {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.nav_pending:
-                        //TODO - make add task button visible and change list of adapter to pending
                         addTaskButton.setVisibility(View.VISIBLE);
                         taskAdapter = new TaskAdapter(getActivity(), pendingTasks);
                         taskView.setAdapter(taskAdapter);
+                        itemTouchHelper.attachToRecyclerView(taskView);
+
+                        completePageActive = false;
                         return true;
                     case R.id.nav_completed:
-                        //TODO - make add task button invisible and change list of adapter to complete
                         addTaskButton.setVisibility(View.INVISIBLE);
                         taskAdapter = new TaskAdapter(getActivity(), completedTasks);
                         taskView.setAdapter(taskAdapter);
+                        itemTouchHelper.attachToRecyclerView(null);
+
+                        completePageActive = true;
                         return true;
                 }
                 return false;
@@ -114,12 +357,56 @@ public class HomeFragment extends Fragment {
     }
 
     void getPendingAndCompleteTasks() {
+        completedTasks.clear();
+        pendingTasks.clear();
+
         for(Task task : LoginActivity.tasks) {
             if(task.isComplete()) {
                 completedTasks.add(task);
             } else {
                 pendingTasks.add(task);
             }
+        }
+    }
+
+    public static byte[] getBitmapAsByteArray(Bitmap bitmap) {
+        //Check if the user took an image for this note or not
+        if(bitmap != null) {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 0, outputStream);
+            return outputStream.toByteArray();
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        try {
+            switch (requestCode) {
+                case 100:
+                    if (resultCode == Activity.RESULT_OK) {
+                        Uri selectedImage = data.getData();
+                        try {
+                            newTaskIcon = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), selectedImage);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+
+                        break;
+                    }
+                    break;
+                case 200:
+                    if (resultCode == Activity.RESULT_OK) {
+                        //data gives you the image uri. Try to convert that to bitmap
+                        newTaskIcon = (Bitmap) data.getExtras().get("data");
+                        break;
+                    }
+                    break;
+            }
+        } catch (Exception e) {
+            //Log.e(TAG, "Exception in onActivityResult : " + e.getMessage());
         }
     }
 }

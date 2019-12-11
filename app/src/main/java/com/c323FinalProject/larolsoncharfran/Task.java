@@ -18,14 +18,20 @@ public class Task {
     LatLng location;
     Bitmap image;
     boolean isComplete = false;
+    String userID;
 
-    Task(String id, String title, String description, Date dueDateTime, String addressName, LatLng location, Bitmap image) {
+    String dueDateString;
+    String dueTimeString;
+
+    Task(String id, String title, String description, Date dueDateTime, String addressName, LatLng location, Bitmap image, String userID) {
+        this.id = id;
         this.title = title;
         this.description = description;
         this.dueDateTime = dueDateTime;
         this.addressName = addressName;
         this.location = location;
         this.image = image;
+        this.userID = userID;
     }
 
     public String getId() {
@@ -54,6 +60,26 @@ public class Task {
 
     public Bitmap getImage() {
         return image;
+    }
+
+    public String getUserID() {
+        return userID;
+    }
+
+    public String getDueDateString() {
+        return dueDateString;
+    }
+
+    public String getDueTimeString() {
+        return dueTimeString;
+    }
+
+    public void setDueDateString(String dueDateString) {
+        this.dueDateString = dueDateString;
+    }
+
+    public void setDueTimeString(String dueTimeString) {
+        this.dueTimeString = dueTimeString;
     }
 
     public void setComplete(boolean complete) {

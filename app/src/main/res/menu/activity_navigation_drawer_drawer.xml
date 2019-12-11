@@ -13,9 +13,8 @@
             android:icon="@drawable/ic_map"
             android:title="@string/menu_map" />
         <item
-            android:id="@+id/nav_calender"
+            android:id="@+id/nav_calendar"
             android:icon="@drawable/ic_calender"
-            android:title="@string/menu_calender" />
+            android:title="@string/menu_calendar" />
     </group>
-
 </menu>

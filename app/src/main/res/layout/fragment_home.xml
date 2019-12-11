@@ -25,6 +25,8 @@
         android:id="@+id/addTaskButton"
         android:layout_margin="10dp"
         android:text="Add New Task"
+        android:background="@drawable/btn_rounded_primary"
+        android:textColor="#fff"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 

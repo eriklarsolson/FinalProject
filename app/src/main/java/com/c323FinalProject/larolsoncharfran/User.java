@@ -1,16 +1,30 @@
 package com.c323FinalProject.larolsoncharfran;
 
+import android.graphics.Bitmap;
+
 import androidx.annotation.NonNull;
 
 public class User {
     String name;
     String email;
-    String id;
+    String id = "";
+    Bitmap icon;
 
-    User(String name, String email, String id) {
+    User(String id, String name, String email, Bitmap icon) {
+        this.id = id;
         this.name = name;
         this.email = email;
-        this.id = id;
+        this.icon = icon;
+    }
+
+    User(String name, String email) {
+        this.name = name;
+        this.email = email;
+        this.icon = null;
+    }
+
+    public Bitmap getIcon() {
+        return icon;
     }
 
     public String getName() {
@@ -25,9 +39,17 @@ public class User {
         return id;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setIcon(Bitmap icon) {
+        this.icon = icon;
+    }
+
     @NonNull
     @Override
     public String toString() {
-        return "Name : " + name + " | Email: " + email;
+        return "Name : " + name + " | Email: " + email + " | ID: " + id + " | Icon: " + icon;
     }
 }

@@ -1,7 +1,5 @@
 <resources>
     <!--
-    TODO: Before you run your application, you need a Google Maps API key.
-
     To get one, follow this link, follow the directions and press "Create" at the end:
 
     https://console.developers.google.com/flows/enableapi?apiid=maps_android_backend&keyType=CLIENT_SIDE_ANDROID&r=08:90:1C:26:EA:F8:AA:05:4E:DF:FC:F8:69:CD:E6:D8:B8:34:8D:4E%3Blars.phoneapp.locationreminder
