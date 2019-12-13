@@ -19,10 +19,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <service
-            android:name=".LocationService"></service>
-        <receiver android:name="AlarmReceiver"></receiver>
-
+        <activity android:name=".AlarmActivity"></activity>
         <activity
             android:name=".NavigationDrawer"
             android:label="@string/title_activity_navigation_drawer"
@@ -33,7 +30,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".LoginActivity"></activity>
+        <activity android:name=".LoginActivity" />
+
+        <service android:name=".BackgroundService" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"

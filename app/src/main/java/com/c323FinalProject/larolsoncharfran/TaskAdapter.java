@@ -6,10 +6,12 @@ import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -35,6 +37,11 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
         notifyDataSetChanged();
     }
 
+    public void updateList(ArrayList<Task> list) {
+        this.list = list;
+        notifyDataSetChanged();
+    }
+
     class ViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener {
         TextView title;
         TextView description;
@@ -48,6 +55,8 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
             description = itemView.findViewById(R.id.description);
             dueDateTime = itemView.findViewById(R.id.dueDateTime);
             image = itemView.findViewById(R.id.image);
+
+            itemView.setOnLongClickListener(this);
         }
 
         public void bindTask(Task task) {
@@ -62,23 +71,23 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
             }
         }
 
-
-        //TODO - Doesn't work
         @Override
         public boolean onLongClick(View view) {
             // setup the alert builder
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-            builder.setTitle("Delete Task?");
-
-            TextView textView = new TextView(activity);
-            textView.setText("Are you sure do you want to Delete this task?");
-            builder.setView(textView);
+            builder.setTitle("Are you sure do you want to delete this task?");
 
             builder.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int id) {
-                            //TODO - Delete from tasks list (and from pending/completed task list) & also from DB
-                            // Also update list adapter
+                            //Delete from tasks list (and from pending/completed task list)
+                            //Also update list adapter
+                            LoginActivity.tasks.remove(getAdapterPosition());
+                            HomeFragment.getPendingAndCompleteTasks();
+                            updateList(LoginActivity.tasks);
+
+                            //TODO - Delete from DB
+                            
                         }
                     })
                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

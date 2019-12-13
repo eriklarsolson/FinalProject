@@ -66,23 +66,16 @@ public class NavigationDrawer extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation_drawer);
 
+        //TODO - only loading tasks from the user that is logged in
+        // Check if it works now
+
+        //TODO - Fix address name coming from DB - it shows null in marker tooltip
+
+        //TODO - set alarm for every created task and have it go off 1 minute before due date time
+
         //Start Service
-        Intent alarm = new Intent(this, AlarmReceiver.class);
-        boolean alarmRunning = (PendingIntent.getBroadcast(this, 0, alarm, PendingIntent.FLAG_NO_CREATE) != null);
-        if(!alarmRunning) {
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, alarm, 0);
-            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(System.currentTimeMillis());
-            calendar.add(Calendar.MINUTE, 1);
-            calendar.set(Calendar.SECOND, 0);
-
-            long triggerAt = calendar.getTimeInMillis();
-
-            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, triggerAt, 18000, pendingIntent);
-            //alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), 1800000, pendingIntent);
-        }
+        //Start background BackgroundService
+        startService(new Intent(this, BackgroundService.class));
 
         //Check login
         //Session class instance
@@ -97,10 +90,6 @@ public class NavigationDrawer extends AppCompatActivity {
          * logged in
          * */
         session.checkLogin();
-
-        //Load in task objects
-        //loadTmpTasks();
-        loadTasks();
 
         //Load users
         loadUsers();
@@ -124,6 +113,10 @@ public class NavigationDrawer extends AppCompatActivity {
                 }
             }
         }
+
+        //Load in task objects
+        //loadTmpTasks();
+        loadTasks();
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -286,7 +279,10 @@ public class NavigationDrawer extends AppCompatActivity {
                 newTask.setDueDateString(new SimpleDateFormat("MM/dd/yyyy").format(newTask.dueDateTime));
                 newTask.setDueTimeString(new SimpleDateFormat("hh:mm").format(newTask.dueDateTime));
                 newTask.setComplete((c.getInt(c.getColumnIndex("Task_isComplete")) == 1));
-                tasks.add(newTask);
+
+                if(newTask.getUserID().equals(currentUser.getId())) {
+                    tasks.add(newTask);
+                }
             } while(c.moveToNext());
         }
         c.close();
@@ -296,31 +292,5 @@ public class NavigationDrawer extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data)
     {
         super.onActivityResult(requestCode,resultCode,data);
-    }
-
-    static double haversineDistance(LatLng location1, LatLng location2) {
-        // distance between latitudes
-        // and longitudes
-        double lat1, lat2, lng1, lng2;
-        lat1 = location1.latitude;
-        lat2 = location2.latitude;
-        lng1 = location1.longitude;
-        lng2 = location2.longitude;
-
-        double dLat = (lat2 - lat1) *
-                Math.PI / 180.0;
-        double dLon = (lng2 - lng1) *
-                Math.PI / 180.0;
-
-        // convert to radians
-        lat1 = (lat1) * Math.PI / 180.0;
-        lat2 = (lat2) * Math.PI / 180.0;
-
-        // apply formulae
-        double a = Math.pow(Math.sin(dLat / 2), 2) +
-                Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1) * Math.cos(lat2);
-        double rad = 6371;
-        double c = 2 * Math.asin(Math.sqrt(a));
-        return rad * c;
     }
 }

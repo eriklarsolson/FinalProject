@@ -3,15 +3,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    
-   <com.applandeo.materialcalendarview.CalendarView
+
+   <com.prolificinteractive.materialcalendarview.MaterialCalendarView
        android:id="@+id/calendar"
-       app:datePicker="true"
        android:layout_width="match_parent"
-       android:layout_height="300dp"
-       app:headerColor="@color/colorPrimary"
-       app:selectionColor="@color/colorAccent"
-       app:todayLabelColor="@color/colorPrimaryDark"/>
+       android:layout_height="400dp"
+       app:mcv_showOtherDates="all"
+       app:mcv_selectionColor="#00F"
+       />
 
    <androidx.recyclerview.widget.RecyclerView
        android:layout_below="@id/calendar"

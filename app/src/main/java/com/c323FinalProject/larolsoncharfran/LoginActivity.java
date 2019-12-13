@@ -8,6 +8,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -43,6 +45,8 @@ import static com.c323FinalProject.larolsoncharfran.NavigationDrawer.userTableNa
 public class LoginActivity extends AppCompatActivity {
     static ArrayList<Task> tasks = new ArrayList<>();
     static ArrayList<User> users = new ArrayList<>();
+    static ArrayList<PendingIntent> pendingIntents = new ArrayList<>();
+    static ArrayList<BroadcastReceiver> broadcastReceivers = new ArrayList<>();
     static User currentUser = null;
     EditText nameTextBox;
     EditText emailTextBox;

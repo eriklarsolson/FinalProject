@@ -38,19 +38,19 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 
+import static com.c323FinalProject.larolsoncharfran.LoginActivity.tasks;
 import static com.c323FinalProject.larolsoncharfran.NavigationDrawer.myDB;
 import static com.c323FinalProject.larolsoncharfran.NavigationDrawer.newTaskIcon;
 import static com.c323FinalProject.larolsoncharfran.NavigationDrawer.taskTableName;
-import static com.c323FinalProject.larolsoncharfran.NavigationDrawer.userTableName;
 
 public class HomeFragment extends Fragment {
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener;
     RecyclerView taskView;
     Button addTaskButton;
-    TaskAdapter taskAdapter;
+    static TaskAdapter taskAdapter;
 
-    ArrayList<Task> pendingTasks = new ArrayList<>();
-    ArrayList<Task> completedTasks = new ArrayList<>();
+    static ArrayList<Task> pendingTasks = new ArrayList<>();
+    static ArrayList<Task> completedTasks = new ArrayList<>();
 
     boolean completePageActive = false;
     AlertDialog dialog;
@@ -98,30 +98,32 @@ public class HomeFragment extends Fragment {
                 //Remove swiped item from list and notify the RecyclerView
                 if (swipeDir == ItemTouchHelper.RIGHT) {
                     final int position = viewHolder.getAdapterPosition();
-                    //taskAdapter.removeItem(position);
 
-                    //Add to complete list
-                    completedTasks.add(pendingTasks.get(position));
+                    Task pendingTaskSwiped = pendingTasks.get(position);
+                    Task selectedTask = null;
+                    for(Task task : tasks) {
+                        if(pendingTaskSwiped.equals(task)) {
+                            task.setComplete(true);
+                            selectedTask = task;
+                            System.out.println("Right swipe worked");
+                        }
+                    }
 
-                    //Delete from pending
-                    pendingTasks.remove(position);
+                    //Update pending and complete lists
+                    getPendingAndCompleteTasks();
 
                     //Notify adapter of data change
                     taskAdapter.notifyDataSetChanged();
 
-                    //TODO - update db with new status of this task
+                    //Update db with new completion status of this task
                     ContentValues values = new ContentValues();
-                    /*values.put("Task_id", newTask.getId());
-                    values.put("Task_title", newTask.getTitle());
-                    values.put("Task_description", newTask.getDescription());
-                    values.put("Task_duedate", newTask.getDueDateString());
-                    values.put("Task_duetime", newTask.getDueTimeString());
-                    values.put("Task_image", getBitmapAsByteArray(newTask.getImage()));
-                    values.put("Task_latitude", newTask.getLocation().latitude);
-                    values.put("Task_longitude", newTask.getLocation().longitude);
-                    values.put("User_id", newTask.getUserID());*/
+                    if(selectedTask.isComplete()) {
+                        values.put("Task_isComplete", 1);
+                    } else {
+                        values.put("Task_isComplete", 0);
+                    }
 
-                    //myDB.insert(taskTableName, null, values);
+                    myDB.update(taskTableName, values, "Task_id = ?", new String[]{pendingTaskSwiped.getId()});
                 }
             }
         };
@@ -242,7 +244,7 @@ public class HomeFragment extends Fragment {
                                 selectedAddress.getLatLng(), newTaskIcon, LoginActivity.currentUser.getId());
                         newTask.setDueDateString(dueDateText);
                         newTask.setDueTimeString(dueTimeText);
-                        LoginActivity.tasks.add(newTask);
+                        tasks.add(newTask);
 
                         //Reload task list
                         getPendingAndCompleteTasks();
@@ -255,7 +257,7 @@ public class HomeFragment extends Fragment {
                             taskView.setAdapter(taskAdapter);
                         }
 
-                        //Insert into DB
+                        //Build values for insert to DB
                         //+ " (Task_id TEXT, Task_title TEXT, Task_description TEXT, Task_duedate TEXT, Task_duetime TEXT, " +
                         //                "Task_image BLOB, Task_latitude TEXT, Task_longitude TEXT, User_id TEXT, Task_isComplete INT, Task_addressName TEXT);");
                         ContentValues values = new ContentValues();
@@ -275,7 +277,24 @@ public class HomeFragment extends Fragment {
                         }
                         values.put("Task_addressName", newTask.getAddressName());
 
+                        //Insert into DB
                         myDB.insert(taskTableName, null, values);
+
+
+                        //Add new alarm to go off one minute before due date
+                        Bundle bundle = new Bundle();
+
+
+                        //TODO - This doesn't work at all
+                        bundle.putLong("TIME", date.getTime());
+                        bundle.putInt("INDEX", LoginActivity.broadcastReceivers.size());
+                        //bundle.putString("PHONE_NUM", phoneNumberTxt);
+                        //bundle.putString("MESSAGE", messageTxt);
+                        //bundle.putString("SOUND_URL", ringtones.get(selectedRingtone).getUrl());
+                        bundle.putInt("TASK_INDEX", tasks.indexOf(newTask));
+
+                        //Create new alarm receiver instance using alarm manager
+                        LoginActivity.broadcastReceivers.add(new AlarmReceiver(getContext(), bundle, 30));
 
                         dialog.hide();
                     } else {
@@ -356,11 +375,11 @@ public class HomeFragment extends Fragment {
         navView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
     }
 
-    void getPendingAndCompleteTasks() {
+    static void getPendingAndCompleteTasks() {
         completedTasks.clear();
         pendingTasks.clear();
 
-        for(Task task : LoginActivity.tasks) {
+        for(Task task : tasks) {
             if(task.isComplete()) {
                 completedTasks.add(task);
             } else {
