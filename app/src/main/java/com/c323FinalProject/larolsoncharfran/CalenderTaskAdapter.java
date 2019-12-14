@@ -47,7 +47,7 @@ public class CalenderTaskAdapter extends RecyclerView.Adapter<CalenderTaskAdapte
         }
 
         public void bindTask(Task task) {
-            title.setText(task.getTitle());
+            title.setText(task.getTitle() + " on " + task.getDueDateString());
 
             if (task.getImage() != null) {
                 image.setImageBitmap(task.getImage());

@@ -240,7 +240,7 @@ public class HomeFragment extends Fragment {
                         String uniqueID = UUID.randomUUID().toString();
 
                         //Create new task and add it to global list
-                        Task newTask = new Task(uniqueID, titleText, descriptionText, date, selectedAddress.getAddress(),
+                        Task newTask = new Task(uniqueID, titleText, descriptionText, date, selectedAddress.getName(),
                                 selectedAddress.getLatLng(), newTaskIcon, LoginActivity.currentUser.getId());
                         newTask.setDueDateString(dueDateText);
                         newTask.setDueTimeString(dueTimeText);

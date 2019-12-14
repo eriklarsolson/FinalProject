@@ -55,6 +55,8 @@ public class BackgroundService extends Service implements LocationListener {
     // Declaring a Location Manager
     protected LocationManager locationManager;
 
+    boolean looperPrepared = false;
+
 
     public BackgroundService() { }
 
@@ -86,6 +88,11 @@ public class BackgroundService extends Service implements LocationListener {
 
     public void getLocation() {
         try {
+            if(!looperPrepared) {
+                Looper.prepare();
+                looperPrepared = true;
+            }
+
             locationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
 
             // getting GPS status
@@ -125,7 +132,6 @@ public class BackgroundService extends Service implements LocationListener {
                 // if GPS Enabled get lat/long using GPS Services
                 if (isGPSEnabled) {
                     if (location == null) {
-                        Looper.prepare();
                         locationManager.requestLocationUpdates(
                                 LocationManager.GPS_PROVIDER,
                                 MIN_TIME_BW_UPDATES,

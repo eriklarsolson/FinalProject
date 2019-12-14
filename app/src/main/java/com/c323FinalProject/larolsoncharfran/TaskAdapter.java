@@ -2,6 +2,7 @@ package com.c323FinalProject.larolsoncharfran;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.media.RingtoneManager;
@@ -82,12 +83,14 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
                         public void onClick(DialogInterface dialog, int id) {
                             //Delete from tasks list (and from pending/completed task list)
                             //Also update list adapter
+                            Task deletedTask = LoginActivity.tasks.get(getAdapterPosition());
+
                             LoginActivity.tasks.remove(getAdapterPosition());
                             HomeFragment.getPendingAndCompleteTasks();
                             updateList(LoginActivity.tasks);
 
-                            //TODO - Delete from DB
-                            
+                            //Delete from DB
+                            NavigationDrawer.myDB.execSQL("DELETE FROM " + NavigationDrawer.taskTableName + " WHERE Task_id='" + deletedTask.getId() + "'");
                         }
                     })
                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

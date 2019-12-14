@@ -66,12 +66,9 @@ public class NavigationDrawer extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation_drawer);
 
-        //TODO - only loading tasks from the user that is logged in
-        // Check if it works now
-
-        //TODO - Fix address name coming from DB - it shows null in marker tooltip
-
-        //TODO - set alarm for every created task and have it go off 1 minute before due date time
+        //TODO:
+        // 1. Set alarm for every created task and have it go off 1 minute before due date time
+        // 2. Change buttons to MaterialButtons
 
         //Start Service
         //Start background BackgroundService
@@ -189,6 +186,7 @@ public class NavigationDrawer extends AppCompatActivity {
         TextView email = headerLayout.findViewById(R.id.email);
 
         if(currentUser != null) {
+            System.out.println(currentUser);
             name.setText(currentUser.getName());
             email.setText(currentUser.getEmail());
 

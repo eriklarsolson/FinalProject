@@ -77,11 +77,10 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //TODO - Validate input of email format
                 if (!nameTextBox.getText().toString().equals("") && !emailTextBox.getText().toString().equals("")) {
                     //Set new currentUser object and add to user list
                     String uniqueID = UUID.randomUUID().toString();
-                    currentUser = new User(nameTextBox.getText().toString(), emailTextBox.getText().toString(), uniqueID, icon);
+                    currentUser = new User(uniqueID, nameTextBox.getText().toString(), emailTextBox.getText().toString(), icon);
                     users.add(currentUser);
 
                     //Creating user login session
@@ -92,7 +91,6 @@ public class LoginActivity extends AppCompatActivity {
                     values.put("User_id", currentUser.getId());
                     values.put("User_name", currentUser.getName());
                     values.put("User_email", currentUser.getEmail());
-
                     values.put("User_icon", HomeFragment.getBitmapAsByteArray(currentUser.getIcon()));
                     myDB.insert(userTableName, null, values);
 
