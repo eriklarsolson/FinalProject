@@ -54,8 +54,6 @@ public class CalenderTaskAdapter extends RecyclerView.Adapter<CalenderTaskAdapte
             } else {
                image.setImageResource(R.drawable.ic_task);
             }
-
-            System.out.println(task.getLocation().toString());
         }
 
     }

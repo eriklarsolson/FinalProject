@@ -2,8 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:card_view="http://schemas.android.com/apk/res-auto"
-    android:background="@android:color/transparent">
+    xmlns:card_view="http://schemas.android.com/apk/res-auto">
 
     <androidx.cardview.widget.CardView
         android:layout_margin="10dp"
@@ -37,19 +36,18 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:layout_below="@id/text2"
                 android:id="@+id/galleryButton"
                 android:text="Choose From Gallery"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
                 android:layout_marginTop="5dp"
-                android:background="@drawable/btn_rounded_primary"
                 android:textColor="#fff"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:layout_below="@id/galleryButton"
                 android:id="@+id/cameraButton"
                 android:text="Camera"
@@ -57,12 +55,11 @@
                 android:layout_marginEnd="20dp"
                 android:layout_marginBottom="5dp"
                 android:layout_marginTop="5dp"
-                android:background="@drawable/btn_rounded_primary"
                 android:textColor="#fff"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:layout_below="@id/cameraButton"
                 android:id="@+id/cancelButton"
                 android:text="Cancel"
@@ -70,7 +67,6 @@
                 android:layout_marginEnd="100dp"
                 android:layout_marginBottom="5dp"
                 android:layout_marginTop="20dp"
-                android:background="@drawable/btn_rounded_primary"
                 android:textColor="#fff"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>

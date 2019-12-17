@@ -18,6 +18,7 @@ public class Task {
     Bitmap image;
     boolean isComplete = false;
     String userID;
+    int receiverIndex;
 
     String dueDateString;
     String dueTimeString;
@@ -31,6 +32,10 @@ public class Task {
         this.location = location;
         this.image = image;
         this.userID = userID;
+    }
+
+    public int getReceiverIndex() {
+        return receiverIndex;
     }
 
     public String getId() {
@@ -79,6 +84,10 @@ public class Task {
 
     public void setDueTimeString(String dueTimeString) {
         this.dueTimeString = dueTimeString;
+    }
+
+    public void setReceiverIndex(int receiverIndex) {
+        this.receiverIndex = receiverIndex;
     }
 
     public void setComplete(boolean complete) {

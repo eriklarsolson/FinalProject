@@ -61,4 +61,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
+    <com.google.android.material.button.MaterialButton
+        android:text="Go Back To Home Page"
+        android:textColor="#fff"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="50dp"
+        android:id="@+id/goBackButton"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content" />
+
 </RelativeLayout>

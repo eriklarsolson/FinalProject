@@ -54,7 +54,7 @@
         android:textColor="#fff"
         android:text="By proceeding, you also agree to the Terms of Service and Privacy Policy " />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/loginButton"
         android:layout_width="match_parent"
         android:layout_height="50dp"

@@ -8,6 +8,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import java.time.LocalDate;
+import java.util.Calendar;
+import java.util.Date;
+
 public class AlarmReceiver extends BroadcastReceiver {
     private final String ALARM_BUNDLE = "ALARM_BUNDLE";
     int indexOfReceiver;
@@ -26,6 +30,13 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         long time = extras.getLong("TIME");
         indexOfReceiver = extras.getInt("INDEX");
+        System.out.println("Time: " + time);
+
+        //Subtract 1 minute from alarm
+        /*Calendar newTime = Calendar.getInstance();
+        newTime.setTimeInMillis(time);
+        newTime.add(Calendar.MILLISECOND, -10000);
+        time = newTime.getTimeInMillis();*/
 
         int id = (int) System.currentTimeMillis();
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, id, intent,
@@ -47,8 +58,6 @@ public class AlarmReceiver extends BroadcastReceiver {
         alarmIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(alarmIntent);
 
-        System.out.println("1: " + LoginActivity.broadcastReceivers);
         LoginActivity.broadcastReceivers.remove(indexOfReceiver);
-        System.out.println("2: " + LoginActivity.broadcastReceivers);
     }
 }

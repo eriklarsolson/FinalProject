@@ -1,10 +1,17 @@
 package com.c323FinalProject.larolsoncharfran;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -14,7 +21,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RelativeLayout;
+import android.widget.RemoteViews;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,12 +37,15 @@ import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.button.MaterialButton;
+
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
 
@@ -45,15 +56,17 @@ import static com.c323FinalProject.larolsoncharfran.NavigationDrawer.taskTableNa
 
 public class HomeFragment extends Fragment {
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener;
-    RecyclerView taskView;
-    Button addTaskButton;
+    static RecyclerView taskView;
+    MaterialButton addTaskButton;
     static TaskAdapter taskAdapter;
 
-    static ArrayList<Task> pendingTasks = new ArrayList<>();
-    static ArrayList<Task> completedTasks = new ArrayList<>();
+    public static ArrayList<Task> pendingTasks = new ArrayList<>();
+    public static ArrayList<Task> completedTasks = new ArrayList<>();
 
-    boolean completePageActive = false;
+    public static boolean completePageActive = false;
     AlertDialog dialog;
+    Calendar calendar = Calendar.getInstance();
+    boolean calendarSet = false;
     static Place selectedAddress = null;
 
     ItemTouchHelper itemTouchHelper;
@@ -105,8 +118,19 @@ public class HomeFragment extends Fragment {
                         if(pendingTaskSwiped.equals(task)) {
                             task.setComplete(true);
                             selectedTask = task;
-                            System.out.println("Right swipe worked");
                         }
+                    }
+
+                    //Delete alarm receiver if marked complete
+                    //TODO - I should be able to remove this if statement if I get task to update to
+                    // complete when it goes off during alarm.
+                    if(LoginActivity.pendingIntents.size() != 0 ) {
+                        PendingIntent pendingIntent = LoginActivity.pendingIntents.get(selectedTask.getReceiverIndex());
+
+
+                        AlarmManager alarmMgr = (AlarmManager) getActivity().getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+                        alarmMgr.cancel(pendingIntent);
+                        LoginActivity.pendingIntents.remove(selectedTask.getReceiverIndex());
                     }
 
                     //Update pending and complete lists
@@ -148,12 +172,13 @@ public class HomeFragment extends Fragment {
         final View customLayout = getLayoutInflater().inflate(R.layout.option_dialog, null);
         builder.setView(customLayout);
 
-        Button galleryButton = customLayout.findViewById(R.id.galleryButton);
-        Button cameraButton = customLayout.findViewById(R.id.cameraButton);
-        Button cancelButton = customLayout.findViewById(R.id.cancelButton);
+        MaterialButton galleryButton = customLayout.findViewById(R.id.galleryButton);
+        MaterialButton cameraButton = customLayout.findViewById(R.id.cameraButton);
+        MaterialButton cancelButton = customLayout.findViewById(R.id.cancelButton);
 
         //Create and show the alert dialog
         dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
         dialog.show();
 
         galleryButton.setOnClickListener(new View.OnClickListener() {
@@ -202,106 +227,144 @@ public class HomeFragment extends Fragment {
 
         builder.setView(customLayout);
 
-        Button saveButton = customLayout.findViewById(R.id.saveButton);
-        Button cancelButton = customLayout.findViewById(R.id.cancelButton);
+        MaterialButton saveButton = customLayout.findViewById(R.id.saveButton);
+        MaterialButton cancelButton = customLayout.findViewById(R.id.cancelButton);
+        final MaterialButton calenderButton = customLayout.findViewById(R.id.calenderButton);
 
         // create and show the alert dialog
         dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
         dialog.show();
+
+        calenderButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setTitle("Set Time");
+
+                final TimePicker timePicker = new TimePicker(getActivity());
+                builder.setView(timePicker);
+
+                // Set up the buttons
+                builder.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        calendar.setTimeInMillis(System.currentTimeMillis());
+                        calendar.set(Calendar.HOUR_OF_DAY, timePicker.getHour());
+                        calendar.set(Calendar.MINUTE, timePicker.getMinute());
+
+                        calendarSet = true;
+
+                        calenderButton.setText("Date and Time Set");
+
+                        dialog.dismiss();
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                AlertDialog calendarDialog = builder.create();
+                calendarDialog.show();
+            }
+        });
 
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 EditText title = customLayout.findViewById(R.id.title);
                 EditText description = customLayout.findViewById(R.id.description);
-                EditText dueDate = customLayout.findViewById(R.id.dueDate);
-                EditText dueTime = customLayout.findViewById(R.id.dueTime);
+                //EditText dueDate = customLayout.findViewById(R.id.dueDate);
+                //EditText dueTime = customLayout.findViewById(R.id.dueTime);
 
                 //TODO - Check input validation
                 String titleText = title.getText().toString();
                 String descriptionText = description.getText().toString();
 
                 //Get date object from entered input
-                String dueDateText = dueDate.getText().toString();
-                String dueTimeText = dueTime.getText().toString();
+                //String dueDateText = dueDate.getText().toString();
+                //String dueTimeText = dueTime.getText().toString();
 
-                if (dueDateText.matches("([0-9]{2})/([0-9]{2})/([0-9]{4})")) {
-                    if (dueTimeText.matches("([0-9]{2}):([0-9]{2})")) {
-                        String dateInString = dueDateText + " " + dueTimeText;
-                        Date date = null;
+                String dueDateText = new SimpleDateFormat("MM/dd/yyyy").format(calendar.getTime());
+                String dueTimeText = new SimpleDateFormat("hh:mm").format(calendar.getTime());
 
-                        try {
-                            date = new SimpleDateFormat("MM/dd/yyyy hh:mm").parse(dateInString);
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
+                if (calendarSet) {
+                    String dateInString = dueDateText + " " + dueTimeText;
+                    Date date = null;
 
-                        //Generate unique ID
-                        String uniqueID = UUID.randomUUID().toString();
-
-                        //Create new task and add it to global list
-                        Task newTask = new Task(uniqueID, titleText, descriptionText, date, selectedAddress.getName(),
-                                selectedAddress.getLatLng(), newTaskIcon, LoginActivity.currentUser.getId());
-                        newTask.setDueDateString(dueDateText);
-                        newTask.setDueTimeString(dueTimeText);
-                        tasks.add(newTask);
-
-                        //Reload task list
-                        getPendingAndCompleteTasks();
-
-                        if (!completePageActive) {
-                            taskAdapter = new TaskAdapter(getActivity(), pendingTasks);
-                            taskView.setAdapter(taskAdapter);
-                        } else {
-                            taskAdapter = new TaskAdapter(getActivity(), completedTasks);
-                            taskView.setAdapter(taskAdapter);
-                        }
-
-                        //Build values for insert to DB
-                        //+ " (Task_id TEXT, Task_title TEXT, Task_description TEXT, Task_duedate TEXT, Task_duetime TEXT, " +
-                        //                "Task_image BLOB, Task_latitude TEXT, Task_longitude TEXT, User_id TEXT, Task_isComplete INT, Task_addressName TEXT);");
-                        ContentValues values = new ContentValues();
-                        values.put("Task_id", newTask.getId());
-                        values.put("Task_title", newTask.getTitle());
-                        values.put("Task_description", newTask.getDescription());
-                        values.put("Task_duedate", newTask.getDueDateString());
-                        values.put("Task_duetime", newTask.getDueTimeString());
-                        values.put("Task_image", getBitmapAsByteArray(newTask.getImage()));
-                        values.put("Task_latitude", newTask.getLocation().latitude);
-                        values.put("Task_longitude", newTask.getLocation().longitude);
-                        values.put("User_id", newTask.getUserID());
-                        if(newTask.isComplete()) {
-                            values.put("Task_isComplete", 1);
-                        } else {
-                            values.put("Task_isComplete", 0);
-                        }
-                        values.put("Task_addressName", newTask.getAddressName());
-
-                        //Insert into DB
-                        myDB.insert(taskTableName, null, values);
-
-
-                        //Add new alarm to go off one minute before due date
-                        Bundle bundle = new Bundle();
-
-
-                        //TODO - This doesn't work at all
-                        bundle.putLong("TIME", date.getTime());
-                        bundle.putInt("INDEX", LoginActivity.broadcastReceivers.size());
-                        //bundle.putString("PHONE_NUM", phoneNumberTxt);
-                        //bundle.putString("MESSAGE", messageTxt);
-                        //bundle.putString("SOUND_URL", ringtones.get(selectedRingtone).getUrl());
-                        bundle.putInt("TASK_INDEX", tasks.indexOf(newTask));
-
-                        //Create new alarm receiver instance using alarm manager
-                        LoginActivity.broadcastReceivers.add(new AlarmReceiver(getContext(), bundle, 30));
-
-                        dialog.hide();
-                    } else {
-                        Toast.makeText(getContext(), "Please enter only numbers & ':' in the due date time box", Toast.LENGTH_SHORT).show();
+                    try {
+                        date = new SimpleDateFormat("MM/dd/yyyy hh:mm").parse(dateInString);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
                     }
+
+                    //Generate unique ID
+                    String uniqueID = UUID.randomUUID().toString();
+
+                    //Create new task and add it to global list
+                    Task newTask = new Task(uniqueID, titleText, descriptionText, date, selectedAddress.getName(),
+                            selectedAddress.getLatLng(), newTaskIcon, LoginActivity.currentUser.getId());
+
+                    //Add new alarm to go off one minute before due date
+                    Bundle bundle = new Bundle();
+
+
+                    bundle.putLong("TIME", date.getTime());
+                    bundle.putInt("INDEX", LoginActivity.broadcastReceivers.size());
+                    //bundle.putString("PHONE_NUM", phoneNumberTxt);
+                    //bundle.putString("MESSAGE", messageTxt);
+                    //bundle.putString("SOUND_URL", ringtones.get(selectedRingtone).getUrl());
+                    bundle.putInt("TASK_INDEX", tasks.size());
+
+                    //Create new alarm receiver instance using alarm manager
+                    LoginActivity.broadcastReceivers.add(new AlarmReceiver(getContext(), bundle, 30));
+
+                    //Set more properties of new task object
+                    newTask.setDueDateString(dueDateText);
+                    newTask.setDueTimeString(dueTimeText);
+                    newTask.setReceiverIndex(LoginActivity.pendingIntents.size() - 1);
+                    tasks.add(newTask);
+
+                    //Reload task list
+                    getPendingAndCompleteTasks();
+
+                    if (!completePageActive) {
+                        taskAdapter = new TaskAdapter(getActivity(), pendingTasks);
+                        taskView.setAdapter(taskAdapter);
+                    } else {
+                        taskAdapter = new TaskAdapter(getActivity(), completedTasks);
+                        taskView.setAdapter(taskAdapter);
+                    }
+
+                    //Build values for insert to DB
+                    //+ " (Task_id TEXT, Task_title TEXT, Task_description TEXT, Task_duedate TEXT, Task_duetime TEXT, " +
+                    //                "Task_image BLOB, Task_latitude TEXT, Task_longitude TEXT, User_id TEXT, Task_isComplete INT, Task_addressName TEXT);");
+                    ContentValues values = new ContentValues();
+                    values.put("Task_id", newTask.getId());
+                    values.put("Task_title", newTask.getTitle());
+                    values.put("Task_description", newTask.getDescription());
+                    values.put("Task_duedate", newTask.getDueDateString());
+                    values.put("Task_duetime", newTask.getDueTimeString());
+                    values.put("Task_image", getBitmapAsByteArray(newTask.getImage()));
+                    values.put("Task_latitude", newTask.getLocation().latitude);
+                    values.put("Task_longitude", newTask.getLocation().longitude);
+                    values.put("User_id", newTask.getUserID());
+                    if(newTask.isComplete()) {
+                        values.put("Task_isComplete", 1);
+                    } else {
+                        values.put("Task_isComplete", 0);
+                    }
+                    values.put("Task_addressName", newTask.getAddressName());
+
+                    //Insert into DB
+                    myDB.insert(taskTableName, null, values);
+
+                    dialog.hide();
                 } else {
-                    Toast.makeText(getContext(), "Please enter only numbers & '/' in the due date date box", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Please set a due date and time using the above button", Toast.LENGTH_SHORT).show();
                 }
             }
         });

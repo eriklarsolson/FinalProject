@@ -1,45 +1,27 @@
 package com.c323FinalProject.larolsoncharfran;
 
-import android.app.Activity;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Bundle;
-
-import android.os.SystemClock;
-import android.provider.MediaStore;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.core.view.GravityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
-
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.navigation.NavigationView;
-
 import androidx.drawerlayout.widget.DrawerLayout;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-
-import java.io.FileNotFoundException;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -67,8 +49,9 @@ public class NavigationDrawer extends AppCompatActivity {
         setContentView(R.layout.activity_navigation_drawer);
 
         //TODO:
-        // 1. Set alarm for every created task and have it go off 1 minute before due date time
-        // 2. Change buttons to MaterialButtons
+        // 1. Set the task that goes off in alarm to complete (Should work but it won't)
+        // 2. Set alarm to go off one minute before due date
+        // 3. Keep testing the alarm because I had it not go off for me setting it a few minutes forward
 
         //Start Service
         //Start background BackgroundService
@@ -103,8 +86,6 @@ public class NavigationDrawer extends AppCompatActivity {
         //Find current user from shared preferences by comparing DB user list
         if(currentUser == null) {
             for (User tmpUser : users) {
-                System.out.println(tmpUser);
-                System.out.println(tmpUser);
                 if (tmpUser.getName().equals(name) && tmpUser.getEmail().equals(email)) {
                     currentUser = tmpUser;
                 }
@@ -138,7 +119,7 @@ public class NavigationDrawer extends AppCompatActivity {
         transaction.replace(R.id.frame, new HomeFragment());
         transaction.commit();
 
-        Button signOutButton = findViewById(R.id.signOutButton);
+        MaterialButton signOutButton = findViewById(R.id.signOutButton);
         signOutButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -186,7 +167,6 @@ public class NavigationDrawer extends AppCompatActivity {
         TextView email = headerLayout.findViewById(R.id.email);
 
         if(currentUser != null) {
-            System.out.println(currentUser);
             name.setText(currentUser.getName());
             email.setText(currentUser.getEmail());
 
@@ -225,7 +205,7 @@ public class NavigationDrawer extends AppCompatActivity {
         myDB.execSQL("CREATE TABLE IF NOT EXISTS "
                 + taskTableName
                 + " (Task_id TEXT, Task_title TEXT, Task_description TEXT, Task_duedate TEXT, Task_duetime TEXT, " +
-                "Task_image BLOB, Task_latitude TEXT, Task_longitude TEXT, User_id TEXT, Task_isComplete INT, Task_addressName TEXT);");
+                "Task_image BLOB, Task_latitude TEXT, Task_longitude TEXT, User_id TEXT, Task_isComplete INT, Task_addressName TEXT, Task_receiverIndex TEXT);");
     }
 
     //Load in users from DB & check if there is a user in shared preferences session
@@ -277,7 +257,10 @@ public class NavigationDrawer extends AppCompatActivity {
                 newTask.setDueDateString(new SimpleDateFormat("MM/dd/yyyy").format(newTask.dueDateTime));
                 newTask.setDueTimeString(new SimpleDateFormat("hh:mm").format(newTask.dueDateTime));
                 newTask.setComplete((c.getInt(c.getColumnIndex("Task_isComplete")) == 1));
+                newTask.setReceiverIndex(c.getInt(c.getColumnIndex("Task_receiverIndex")));
 
+                System.out.println("User ID for Task: " + newTask.getUserID());
+                System.out.println("User ID: " + currentUser.getId());
                 if(newTask.getUserID().equals(currentUser.getId())) {
                     tasks.add(newTask);
                 }

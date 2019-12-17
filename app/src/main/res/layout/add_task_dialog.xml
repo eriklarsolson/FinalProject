@@ -2,8 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:card_view="http://schemas.android.com/apk/res-auto"
-    android:background="@android:color/transparent">
+    xmlns:card_view="http://schemas.android.com/apk/res-auto">
 
     <androidx.cardview.widget.CardView
         android:layout_margin="10dp"
@@ -43,7 +42,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="100dp" />
 
-            <RelativeLayout
+            <!--<RelativeLayout
                 android:layout_marginTop="10dp"
                 android:layout_centerHorizontal="true"
                 android:id="@+id/dateLayout"
@@ -69,17 +68,29 @@
                     android:layout_width="115dp"
                     android:layout_height="wrap_content"
                     android:backgroundTint="#fff"/>
-            </RelativeLayout>
+            </RelativeLayout>-->
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/calenderButton"
+                android:text="Set Date and Time"
+                android:layout_below="@id/description"
+                android:layout_marginStart="45dp"
+                android:layout_marginEnd="45dp"
+                android:layout_width="match_parent"
+                android:textColor="#fff"
+                android:layout_height="wrap_content"/>
 
             <RelativeLayout
                 android:layout_marginTop="15dp"
-                android:layout_below="@id/dateLayout"
+                android:layout_below="@id/calenderButton"
                 android:id="@+id/addressLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="#ffff">
                 <fragment
                     android:id="@+id/addressBar"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
                     android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
@@ -92,21 +103,20 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/cancelButton"
                     android:text="Cancel"
                     android:layout_marginEnd="50dp"
                     android:layout_width="100dp"
-                    android:background="@drawable/btn_rounded_primary"
                     android:textColor="#fff"
                     android:layout_height="wrap_content"/>
-                <Button
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/saveButton"
                     android:layout_toEndOf="@id/cancelButton"
                     android:text="Save"
                     android:layout_marginStart="50dp"
                     android:layout_width="100dp"
-                    android:background="@drawable/btn_rounded_primary"
                     android:textColor="#fff"
                     android:layout_height="wrap_content"/>
             </RelativeLayout>

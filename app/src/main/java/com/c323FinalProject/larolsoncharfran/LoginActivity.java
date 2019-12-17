@@ -13,28 +13,20 @@ import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.material.button.MaterialButton;
+
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.UUID;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -73,7 +65,7 @@ public class LoginActivity extends AppCompatActivity {
         emailTextBox = findViewById(R.id.emailTextBox);
         profile_image = findViewById(R.id.profile_image);
 
-        Button loginButton = findViewById(R.id.loginButton);
+        MaterialButton loginButton = findViewById(R.id.loginButton);
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -137,12 +129,13 @@ public class LoginActivity extends AppCompatActivity {
         final View customLayout = getLayoutInflater().inflate(R.layout.option_dialog, null);
         builder.setView(customLayout);
 
-        Button galleryButton = customLayout.findViewById(R.id.galleryButton);
-        Button cameraButton = customLayout.findViewById(R.id.cameraButton);
-        Button cancelButton = customLayout.findViewById(R.id.cancelButton);
+        MaterialButton galleryButton = customLayout.findViewById(R.id.galleryButton);
+        MaterialButton cameraButton = customLayout.findViewById(R.id.cameraButton);
+        MaterialButton cancelButton = customLayout.findViewById(R.id.cancelButton);
 
         //Create and show the alert dialog
         dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
         dialog.show();
 
         checkPermission();
@@ -188,7 +181,6 @@ public class LoginActivity extends AppCompatActivity {
                         Uri selectedImage = data.getData();
                         try {
                             icon = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
-                            System.out.println(icon);
                             profile_image.setImageBitmap(icon);
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();
@@ -201,7 +193,6 @@ public class LoginActivity extends AppCompatActivity {
                     if (resultCode == Activity.RESULT_OK) {
                         //data gives you the image uri. Try to convert that to bitmap
                         icon = (Bitmap) data.getExtras().get("data");
-                        System.out.println(icon);
                         profile_image.setImageBitmap(icon);
                         break;
                     }

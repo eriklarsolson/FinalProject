@@ -5,9 +5,12 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+
+import static com.c323FinalProject.larolsoncharfran.BackgroundService.haversineDistance;
 
 public class CustomMarkerInfoWindowView implements GoogleMap.InfoWindowAdapter {
     private final View markerItemView;
@@ -24,6 +27,8 @@ public class CustomMarkerInfoWindowView implements GoogleMap.InfoWindowAdapter {
         TextView address = markerItemView.findViewById(R.id.address);
         TextView description = markerItemView.findViewById(R.id.description);
         CircleImageView image = markerItemView.findViewById(R.id.image);
+        TextView distance = markerItemView.findViewById(R.id.distance);
+
         title.setText("Title: " + task.getTitle());
         address.setText("Address: " + task.getAddressName());
         description.setText("Description: " + task.getDescription());
@@ -32,6 +37,10 @@ public class CustomMarkerInfoWindowView implements GoogleMap.InfoWindowAdapter {
         } else {
             image.setImageResource(R.drawable.ic_task);
         }
+
+        double kilometerDistance = haversineDistance(new LatLng(BackgroundService.location.getLatitude(), BackgroundService.location.getLongitude()), task.getLocation());
+        double milesDistance = kilometerDistance * 0.621;
+        distance.setText(String.valueOf(milesDistance).substring(0, String.valueOf(milesDistance).indexOf(".")) + "mi");
         return markerItemView;
     }
 

@@ -33,6 +33,7 @@
         <activity android:name=".LoginActivity" />
 
         <service android:name=".BackgroundService" />
+        <receiver android:name=".AlarmReceiver" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"

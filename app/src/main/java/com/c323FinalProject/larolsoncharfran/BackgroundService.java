@@ -42,7 +42,7 @@ public class BackgroundService extends Service implements LocationListener {
     // flag for GPS status
     boolean canGetLocation = false;
 
-    Location location; // location
+    static Location location; // location
     double latitude; // latitude
     double longitude; // longitude
 

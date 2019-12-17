@@ -63,8 +63,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
     void loadPins() {
         //Get latLngs from tasks and add custom pins
         for(Task task : LoginActivity.tasks) {
-            System.out.println(task.getTitle());
-            System.out.println(mMap);
             Marker marker = mMap.addMarker(new MarkerOptions().position(task.getLocation()).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
 
             marker.setTag(task);
@@ -155,7 +153,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, Locatio
 
         //move map camera
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
 
         //stop location updates
         if (mGoogleApiClient != null) {
