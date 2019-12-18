@@ -2,6 +2,7 @@ package com.c323FinalProject.larolsoncharfran;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -11,6 +12,9 @@ import android.widget.TextView;
 import com.google.android.material.button.MaterialButton;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+
+import static com.c323FinalProject.larolsoncharfran.NavigationDrawer.myDB;
+import static com.c323FinalProject.larolsoncharfran.NavigationDrawer.taskTableName;
 
 public class AlarmActivity extends AppCompatActivity {
 
@@ -22,8 +26,12 @@ public class AlarmActivity extends AppCompatActivity {
         Bundle bundle = getIntent().getBundleExtra("ALARM_BUNDLE");
         int taskIndex = bundle.getInt("TASK_INDEX");
 
+//        LoginActivity.tasks.get(taskIndex).setComplete(true);
         Task task = LoginActivity.tasks.get(taskIndex);
-        LoginActivity.tasks.get(taskIndex).setComplete(true);
+
+//        ContentValues values = new ContentValues();
+//        values.put("Task_isComplete", 1);
+//        myDB.update(taskTableName, values, "Task_id = ?", new String[]{task.getId()});
 
         setTitle("Alarm Going Off!");
 

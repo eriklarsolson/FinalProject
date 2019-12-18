@@ -15,6 +15,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -55,6 +56,8 @@ import static com.c323FinalProject.larolsoncharfran.NavigationDrawer.newTaskIcon
 import static com.c323FinalProject.larolsoncharfran.NavigationDrawer.taskTableName;
 
 public class HomeFragment extends Fragment {
+    private String mTag = "HomeFragment";
+
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener;
     static RecyclerView taskView;
     MaterialButton addTaskButton;
@@ -77,6 +80,8 @@ public class HomeFragment extends Fragment {
 
         BottomNavigationView bottomNavigation = root.findViewById(R.id.nav_view);
         bottomNavigation.inflateMenu(R.menu.home);
+
+        Log.d(mTag, "OnCreateView()");
 
         //Set title
         getActivity().setTitle("Home");
@@ -163,6 +168,12 @@ public class HomeFragment extends Fragment {
         });
 
         return root;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(mTag, "OnResume()");
     }
 
     public void showCameraOptionDialog() {
@@ -291,7 +302,7 @@ public class HomeFragment extends Fragment {
                 String dueDateText = new SimpleDateFormat("MM/dd/yyyy").format(calendar.getTime());
                 String dueTimeText = new SimpleDateFormat("hh:mm").format(calendar.getTime());
 
-                if (calendarSet) {
+                if (calendarSet && selectedAddress != null) {
                     String dateInString = dueDateText + " " + dueTimeText;
                     Date date = null;
 
@@ -449,6 +460,9 @@ public class HomeFragment extends Fragment {
                 pendingTasks.add(task);
             }
         }
+
+        Log.d("HomeFragment", "Completed Tasks len: " + completedTasks.size());
+        Log.d("HomeFragment", "Pending Tasks len: " + pendingTasks.size());
     }
 
     public static byte[] getBitmapAsByteArray(Bitmap bitmap) {

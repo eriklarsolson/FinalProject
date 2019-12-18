@@ -49,7 +49,6 @@ public class NavigationDrawer extends AppCompatActivity {
         setContentView(R.layout.activity_navigation_drawer);
 
         //TODO:
-        // 1. Set the task that goes off in alarm to complete (Should work but it won't)
         // 2. Set alarm to go off one minute before due date
         // 3. Keep testing the alarm because I had it not go off for me setting it a few minutes forward
 
