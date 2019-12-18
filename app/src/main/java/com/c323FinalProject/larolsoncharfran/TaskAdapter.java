@@ -87,8 +87,8 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
                             Task deletedTask = LoginActivity.tasks.get(getAdapterPosition());
 
                             LoginActivity.tasks.remove(getAdapterPosition());
+                            removeItem(getAdapterPosition());
                             HomeFragment.getPendingAndCompleteTasks();
-                            updateList(LoginActivity.tasks);
 
                             //Delete from DB
                             NavigationDrawer.myDB.execSQL("DELETE FROM " + NavigationDrawer.taskTableName + " WHERE Task_id='" + deletedTask.getId() + "'");

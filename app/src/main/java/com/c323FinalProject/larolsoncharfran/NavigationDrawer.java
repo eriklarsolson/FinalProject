@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
@@ -32,6 +33,7 @@ import static com.c323FinalProject.larolsoncharfran.LoginActivity.tasks;
 import static com.c323FinalProject.larolsoncharfran.LoginActivity.users;
 
 public class NavigationDrawer extends AppCompatActivity {
+    private String mTag = "NavDraw";
     DrawerLayout drawer;
 
     //Session Manager Class
@@ -47,11 +49,7 @@ public class NavigationDrawer extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation_drawer);
-
-        //TODO:
-        // 2. Set alarm to go off one minute before due date
-        // 3. Keep testing the alarm because I had it not go off for me setting it a few minutes forward
-
+        Log.d("NavDraw", "OnCreate()");
         //Start Service
         //Start background BackgroundService
         startService(new Intent(this, BackgroundService.class));
@@ -131,6 +129,12 @@ public class NavigationDrawer extends AppCompatActivity {
                 session.logoutUser();
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(mTag, "OnResume()");
     }
 
     private void configureNavigationDrawer() {
@@ -230,6 +234,7 @@ public class NavigationDrawer extends AppCompatActivity {
     void loadTasks() {
         tasks.clear();
         Cursor c = myDB.rawQuery("SELECT * FROM " + taskTableName, null);
+        Log.d(mTag, "Loaded tasks: " + c.getCount());
         if (c.moveToFirst()){
             do {
                 Bitmap image = null;
@@ -266,6 +271,7 @@ public class NavigationDrawer extends AppCompatActivity {
             } while(c.moveToNext());
         }
         c.close();
+        Log.d(mTag, "Tasks: " + tasks);
     }
 
     @Override

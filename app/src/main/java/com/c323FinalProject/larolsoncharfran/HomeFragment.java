@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
-import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -20,9 +18,8 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.RemoteViews;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
@@ -70,6 +67,7 @@ public class HomeFragment extends Fragment {
     AlertDialog dialog;
     Calendar calendar = Calendar.getInstance();
     boolean calendarSet = false;
+    boolean timeSet = false;
     static Place selectedAddress = null;
 
     ItemTouchHelper itemTouchHelper;
@@ -127,11 +125,8 @@ public class HomeFragment extends Fragment {
                     }
 
                     //Delete alarm receiver if marked complete
-                    //TODO - I should be able to remove this if statement if I get task to update to
-                    // complete when it goes off during alarm.
                     if(LoginActivity.pendingIntents.size() != 0 ) {
                         PendingIntent pendingIntent = LoginActivity.pendingIntents.get(selectedTask.getReceiverIndex());
-
 
                         AlarmManager alarmMgr = (AlarmManager) getActivity().getApplicationContext().getSystemService(Context.ALARM_SERVICE);
                         alarmMgr.cancel(pendingIntent);
@@ -168,12 +163,6 @@ public class HomeFragment extends Fragment {
         });
 
         return root;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.d(mTag, "OnResume()");
     }
 
     public void showCameraOptionDialog() {
@@ -241,45 +230,75 @@ public class HomeFragment extends Fragment {
         MaterialButton saveButton = customLayout.findViewById(R.id.saveButton);
         MaterialButton cancelButton = customLayout.findViewById(R.id.cancelButton);
         final MaterialButton calenderButton = customLayout.findViewById(R.id.calenderButton);
+        final MaterialButton timeButton = customLayout.findViewById(R.id.timeButton);
 
         // create and show the alert dialog
         dialog = builder.create();
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
         dialog.show();
+        calendar.setTimeInMillis(System.currentTimeMillis());
 
         calenderButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                builder.setTitle("Set Time");
+                AlertDialog.Builder calBuilder = new AlertDialog.Builder(getActivity());
+                calBuilder.setTitle("Set Date");
 
-                final TimePicker timePicker = new TimePicker(getActivity());
-                builder.setView(timePicker);
-
-                // Set up the buttons
-                builder.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                final DatePicker datePicker = new DatePicker(getActivity());
+                calBuilder.setView(datePicker);
+                calBuilder.setPositiveButton("Confirm Date", new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        calendar.setTimeInMillis(System.currentTimeMillis());
-                        calendar.set(Calendar.HOUR_OF_DAY, timePicker.getHour());
-                        calendar.set(Calendar.MINUTE, timePicker.getMinute());
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        calendar.set(Calendar.MONTH, datePicker.getMonth());
+                        calendar.set(Calendar.DATE, datePicker.getDayOfMonth());
+                        calendar.set(Calendar.YEAR, datePicker.getYear());
 
                         calendarSet = true;
-
-                        calenderButton.setText("Date and Time Set");
-
-                        dialog.dismiss();
+                        calenderButton.setText("Date Set");
                     }
                 });
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                calBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.cancel();
                     }
                 });
 
-                AlertDialog calendarDialog = builder.create();
+                AlertDialog calendarDialog = calBuilder.create();
                 calendarDialog.show();
+            }
+        });
+
+        timeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog.Builder timeBuilder = new AlertDialog.Builder(getActivity());
+                timeBuilder.setTitle("Set Time");
+                final TimePicker timePicker = new TimePicker(getActivity());
+                timeBuilder.setView(timePicker);
+
+                // Set up the buttons
+                timeBuilder.setPositiveButton("Confirm Time", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.d("Time", "Hour: "  + timePicker.getHour());
+                        calendar.set(Calendar.HOUR_OF_DAY, timePicker.getHour());
+                        calendar.set(Calendar.MINUTE, timePicker.getMinute());
+
+                        timeSet = true;
+                        timeButton.setText("Time Set");
+                    }
+                });
+
+                timeBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                AlertDialog timeDialog = timeBuilder.create();
+                timeDialog.show();
             }
         });
 
@@ -288,26 +307,22 @@ public class HomeFragment extends Fragment {
             public void onClick(View view) {
                 EditText title = customLayout.findViewById(R.id.title);
                 EditText description = customLayout.findViewById(R.id.description);
-                //EditText dueDate = customLayout.findViewById(R.id.dueDate);
-                //EditText dueTime = customLayout.findViewById(R.id.dueTime);
 
-                //TODO - Check input validation
                 String titleText = title.getText().toString();
                 String descriptionText = description.getText().toString();
 
-                //Get date object from entered input
-                //String dueDateText = dueDate.getText().toString();
-                //String dueTimeText = dueTime.getText().toString();
 
                 String dueDateText = new SimpleDateFormat("MM/dd/yyyy").format(calendar.getTime());
-                String dueTimeText = new SimpleDateFormat("hh:mm").format(calendar.getTime());
+                String dueTimeText = new SimpleDateFormat("HH:mm").format(calendar.getTime());
 
-                if (calendarSet && selectedAddress != null) {
+                if (!titleText.equals("") && calendarSet && timeSet && selectedAddress != null
+                        && selectedAddress.getName() != null
+                        && !selectedAddress.getName().equals("")) {
                     String dateInString = dueDateText + " " + dueTimeText;
                     Date date = null;
 
                     try {
-                        date = new SimpleDateFormat("MM/dd/yyyy hh:mm").parse(dateInString);
+                        date = new SimpleDateFormat("MM/dd/yyyy HH:mm").parse(dateInString);
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
@@ -325,13 +340,10 @@ public class HomeFragment extends Fragment {
 
                     bundle.putLong("TIME", date.getTime());
                     bundle.putInt("INDEX", LoginActivity.broadcastReceivers.size());
-                    //bundle.putString("PHONE_NUM", phoneNumberTxt);
-                    //bundle.putString("MESSAGE", messageTxt);
-                    //bundle.putString("SOUND_URL", ringtones.get(selectedRingtone).getUrl());
                     bundle.putInt("TASK_INDEX", tasks.size());
 
                     //Create new alarm receiver instance using alarm manager
-                    LoginActivity.broadcastReceivers.add(new AlarmReceiver(getContext(), bundle, 30));
+                    LoginActivity.broadcastReceivers.add(new AlarmReceiver(getContext(), bundle));
 
                     //Set more properties of new task object
                     newTask.setDueDateString(dueDateText);
@@ -375,7 +387,7 @@ public class HomeFragment extends Fragment {
 
                     dialog.hide();
                 } else {
-                    Toast.makeText(getContext(), "Please set a due date and time using the above button", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Please set a title, due date, time, and/or location using the above button", Toast.LENGTH_SHORT).show();
                 }
             }
         });

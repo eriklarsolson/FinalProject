@@ -13,11 +13,14 @@ import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -71,20 +74,36 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (!nameTextBox.getText().toString().equals("") && !emailTextBox.getText().toString().equals("")) {
                     //Set new currentUser object and add to user list
-                    String uniqueID = UUID.randomUUID().toString();
-                    currentUser = new User(uniqueID, nameTextBox.getText().toString(), emailTextBox.getText().toString(), icon);
-                    users.add(currentUser);
+                    Cursor c = myDB.rawQuery("SELECT * FROM " + userTableName + " WHERE User_name='" + nameTextBox.getText().toString() + "' AND User_email='" + emailTextBox.getText().toString() + "';", null);
+                    if (c.getCount() == 0) {
+                        String uniqueID = UUID.randomUUID().toString();
+                        currentUser = new User(uniqueID, nameTextBox.getText().toString(), emailTextBox.getText().toString(), icon);
+                        users.add(currentUser);
+
+                        //Insert into DB
+                        ContentValues values = new ContentValues();
+                        values.put("User_id", currentUser.getId());
+                        values.put("User_name", currentUser.getName());
+                        values.put("User_email", currentUser.getEmail());
+                        values.put("User_icon", HomeFragment.getBitmapAsByteArray(currentUser.getIcon()));
+                        myDB.insert(userTableName, null, values);
+                    } else {
+                        if (c.moveToFirst()){
+                            Bitmap icon = null;
+                            byte[] imgByte = c.getBlob(3);
+
+                            if(imgByte != null) {
+                                icon = BitmapFactory.decodeByteArray(imgByte, 0, imgByte.length);
+                            }
+                            currentUser = new User(c.getString(0), c.getString(1), c.getString(2), icon);
+
+                            users.add(currentUser);
+                        }
+                    }
+                    c.close();
 
                     //Creating user login session
                     session.createLoginSession(currentUser.getName(), currentUser.getEmail());
-
-                    //Insert into DB
-                    ContentValues values = new ContentValues();
-                    values.put("User_id", currentUser.getId());
-                    values.put("User_name", currentUser.getName());
-                    values.put("User_email", currentUser.getEmail());
-                    values.put("User_icon", HomeFragment.getBitmapAsByteArray(currentUser.getIcon()));
-                    myDB.insert(userTableName, null, values);
 
                     //Go to main activity
                     Intent intent = new Intent(LoginActivity.this, NavigationDrawer.class);
@@ -108,6 +127,11 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("Login", "OnResume()");
+    }
 
     private void checkPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -117,7 +141,27 @@ public class LoginActivity extends AppCompatActivity {
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 123);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 123);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 123);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 123);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, 123);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.FOREGROUND_SERVICE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.FOREGROUND_SERVICE}, 123);
         }
     }
 

@@ -175,7 +175,6 @@ public class BackgroundService extends Service implements LocationListener {
                     if(!task.isComplete()) {
                         notificationDialog(task.getTitle());
                     }
-
                     //TODO - Maybe only show one notification? Don't keep going off if it just went off right before
                 }
             }
